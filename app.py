@@ -15,8 +15,8 @@ mysql.init_app(app)
 
 
 # User Personal and School details
-@app.route('/webnew_get_all_user_ids', methods=['GET'])
-def webnew_get_all_user_ids():
+@app.route('/web/get_all_user_ids', methods=['GET'])
+def web_get_all_user_ids():
     conn = None
     cursor = None
     try:
