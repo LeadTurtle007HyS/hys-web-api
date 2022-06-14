@@ -332,7 +332,7 @@ def get_menucard(id):
             cursor.execute(
                 " select menu.store_id store_id, menu.category_id category_id, menu.product_id product_id, pro.product_name product_name, "
                 " pro.product_desc product_desc, pro.product_image_url product_image_url, pro.veg_nonveg veg_nonveg, pro.avg_rating avg_rating,  "
-                " pro.compare_date compare_date, pro.discount_percent discount_percent   "
+                " pro.compare_date compare_date, pro.discount_percent discount_percent, 0 as overall_qnty   "
                 " from u155614453_restro.tbl_d_menucard menu left join u155614453_restro.tbl_d_product pro "
                 " on pro.product_id=menu.product_id where menu.store_id=%s and category_id=%s; ", data)
             category[j]["menu_card"] = cursor.fetchall()
