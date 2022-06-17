@@ -402,6 +402,7 @@ def add_order():
         _product_id = _json['product_id']
         _subproduct_id = _json['subproduct_id']
         _quantity = _json['quantity']
+        _total_quantity = _json['total_quantity']
         _price = _json['price']
         _line_amount = _json['line_amount']
         _total_amount = _json['total_amount']
@@ -416,12 +417,12 @@ def add_order():
             conn = mysql.connect()
             cursor = conn.cursor()
             data = (
-            _order_id, _store_id, _table_num, _customer_id, _category_id, _product_id, _subproduct_id, _quantity,
+            _order_id, _store_id, _table_num, _customer_id, _category_id, _product_id, _subproduct_id, _quantity, _total_quantity,
             _price, _line_amount, _total_amount, _tax_amount, _discount_amount, _tax_percent, _discount_percent,
             _coupon_id, _compare_date)
             cursor.execute(
-                " insert into u155614453_restro.tbl_d_order (order_id, store_id, table_num, customer_id, category_id, product_id, subproduct_id, quantity, price, line_amount, total_amount, tax_amount, "
-                " discount_amount, tax_percent, discount_percent, coupon_id, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
+                " insert into u155614453_restro.tbl_d_order (order_id, store_id, table_num, customer_id, category_id, product_id, subproduct_id, quantity, total_quantity, price, line_amount, total_amount, tax_amount, "
+                " discount_amount, tax_percent, discount_percent, coupon_id, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
                 data)
             conn.commit()
             resp = jsonify('order added successfully!')
