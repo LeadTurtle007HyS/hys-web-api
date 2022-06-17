@@ -387,6 +387,76 @@ def update_menucard():
         conn.close()
 
 
+@app.route('/add_order', methods=['POST'])
+@cross_origin()
+def add_order():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _order_id = _json['order_id']
+        _store_id = _json['store_id']
+        _table_num = _json['table_num']
+        _customer_id = _json['customer_id']
+        _category_id = _json['category_id']
+        _product_id = _json['product_id']
+        _subproduct_id = _json['subproduct_id']
+        _quantity = _json['quantity']
+        _price = _json['price']
+        _line_amount = _json['line_amount']
+        _total_amount = _json['total_amount']
+        _tax_amount = _json['tax_amount']
+        _discount_amount = _json['discount_amount']
+        _tax_percent = _json['tax_percent']
+        _discount_percent = _json['discount_percent']
+        _coupon_id = _json['coupon_id']
+        _compare_date = _json['compare_date']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            data = (
+            _order_id, _store_id, _table_num, _customer_id, _category_id, _product_id, _subproduct_id, _quantity,
+            _price, _line_amount, _total_amount, _tax_amount, _discount_amount, _tax_percent, _discount_percent,
+            _coupon_id, _compare_date)
+            cursor.execute(
+                " insert into u155614453_restro.tbl_d_order (order_id, store_id, table_num, customer_id, category_id, product_id, subproduct_id, quantity, price, line_amount, total_amount, tax_amount, "
+                " discount_amount, tax_percent, discount_percent, coupon_id, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
+                data)
+            conn.commit()
+            resp = jsonify('order added successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/delete_order/<string:orderid>', methods=['GET'])
+def delete_order(orderid):
+    conn = None
+    cursor = None
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            "delete from u155614453_restro.tbl_d_order where order_id=%s", _order_id)
+        conn.commit()
+        resp = jsonify('order deleted successfully!')
+        resp.status_code = 200
+        resp.headers.add("Access-Control-Allow-Origin", "*")
+        return resp
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.errorhandler(404)
 def not_found(error):
     message = {
