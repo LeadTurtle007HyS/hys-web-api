@@ -437,6 +437,43 @@ def add_order():
         conn.close()
 
 
+@app.route('/add_customer_details', methods=['POST'])
+@cross_origin()
+def add_customer_details():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _customer_id = _json['customer_id']
+        _first_name = _json['first_name']
+        _last_name = _json['last_name']
+        _email_id = _json['email_id']
+        _mobile_no = _json['mobile_no']
+        _latitude = _json['latitude']
+        _longitude = _json['longitude']
+        _compare_date = _json['compare_date']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            data = (
+            _customer_id, _first_name, _last_name, _email_id, _mobile_no, _latitude, _longitude, _compare_date)
+            cursor.execute(
+                " insert into u155614453_restro.tbl_d_customer (customer_id, first_name, last_name, email_id, mobile_no, latitude, longitude, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s); ",
+                data)
+            conn.commit()
+            resp = jsonify('customer added successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route('/delete_order/<string:orderid>', methods=['GET'])
 def delete_order(orderid):
     conn = None
@@ -486,4 +523,4 @@ if __name__ == '__main__':
     #     app.config['APPLICATION_ROOT']: app,
     # })
     # run_simple('localhost', 8080, application, use_reloader=True)
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(debug=True)
