@@ -486,4 +486,4 @@ if __name__ == '__main__':
     #     app.config['APPLICATION_ROOT']: app,
     # })
     # run_simple('localhost', 8080, application, use_reloader=True)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
