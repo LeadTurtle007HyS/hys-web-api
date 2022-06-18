@@ -445,7 +445,7 @@ def delete_order(orderid):
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.execute(
-            "delete from u155614453_restro.tbl_d_order where order_id=%s", _order_id)
+            "delete from u155614453_restro.tbl_d_order where order_id=%s", orderid)
         conn.commit()
         resp = jsonify('order deleted successfully!')
         resp.status_code = 200
