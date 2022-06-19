@@ -412,6 +412,8 @@ def add_order():
         _discount_percent = _json['discount_percent']
         _coupon_id = _json['coupon_id']
         _compare_date = _json['compare_date']
+        _order_datetime = _json['order_datetime']
+        _order_complete_datetime = _json['order_complete_datetime']
         # validate the received values
         if  request.method == 'POST':
             conn = mysql.connect()
@@ -419,10 +421,10 @@ def add_order():
             data = (
             _order_id, _store_id, _table_num, _customer_id, _category_id, _product_id, _subproduct_id, _quantity, _total_quantity,
             _price, _line_amount, _total_amount, _tax_amount, _discount_amount, _tax_percent, _discount_percent,
-            _coupon_id, _compare_date)
+            _coupon_id, _compare_date, _order_datetime, _order_complete_datetime)
             cursor.execute(
                 " insert into u155614453_restro.tbl_d_order (order_id, store_id, table_num, customer_id, category_id, product_id, subproduct_id, quantity, total_quantity, price, line_amount, total_amount, tax_amount, "
-                " discount_amount, tax_percent, discount_percent, coupon_id, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ",
+                " discount_amount, tax_percent, discount_percent, coupon_id, compare_date, order_datetime, order_complete_datetime, order_status) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0); ",
                 data)
             conn.commit()
             resp = jsonify('order added successfully!')
