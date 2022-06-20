@@ -418,6 +418,8 @@ def add_order():
         if  request.method == 'POST':
             conn = mysql.connect()
             cursor = conn.cursor()
+            cursor.execute(" delete from u155614453_restro.tbl_d_order where order_id=%s;", _order_id)
+            conn.commit()
             data = (
             _order_id, _store_id, _table_num, _customer_id, _category_id, _product_id, _subproduct_id, _quantity, _total_quantity,
             _price, _line_amount, _total_amount, _tax_amount, _discount_amount, _tax_percent, _discount_percent,
@@ -490,6 +492,80 @@ def delete_order(orderid):
         resp.status_code = 200
         resp.headers.add("Access-Control-Allow-Origin", "*")
         return resp
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/get_order_details/<string:storeid>', methods=['GET'])
+def get_order_details(storeid):
+    conn = None
+    cursor = None
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(
+            " WITH total_rder_detials AS (   "
+            "     select distinct ord.order_id order_id, ord.table_num table_num, cust.customer_id customer_id, cust.first_name first_name, cust.last_name last_name, cust.mobile_no mobile_no, cust.email_id email_id, "
+            "  prod.product_id product_id, prod.product_name product_name, prod.product_image_url product_image_url, prod.product_desc product_desc, prod.veg_nonveg veg_nonveg,  "
+            " subprod.subproduct_id subproduct_id, subprod.subproduct_name subproduct_name, subprod.price price, "
+            " cat.category_id category_id, cat.category_name category_name, cat.category_desc category_desc, cat.category_image_url category_image_url,  "
+            " ord.quantity quantity, ord.line_amount line_amount, ord.total_quantity total_quantity, ord.total_amount total_amount, ord.tax_amount tax_amount, ord.tax_percent tax_percent,  "
+            " ord.discount_amount discount_amount, ord.discount_percent discount_percent, ord.coupon_id coupon_id, ord.order_status order_status, ord.order_datetime order_datetime,  "
+            " ord.order_complete_datetime order_complete_datetime, ord.compare_date compare_date, ord.createdate createdate "
+            " from u155614453_restro.tbl_d_order ord  "
+            " inner join u155614453_restro.tbl_d_customer cust on cust.customer_id=ord.customer_id  "
+            " inner join u155614453_restro.tbl_d_category cat on cat.category_id=ord.category_id  "
+            " inner join u155614453_restro.tbl_d_product prod on prod.product_id = ord.product_id  "
+            " inner join u155614453_restro.tbl_d_subproduct subprod on subprod.subproduct_id = ord.subproduct_id  "
+            " order by ord.createdate desc, ord.order_id)  "
+            " select distinct mord.order_id order_id, "
+            " (select distinct concat('[',group_concat(json_object('order_id',order_id,'table_num',table_num,'customer_id',customer_id,'first_name',first_name,'last_name',last_name, "
+            " 'mobile_no',mobile_no,'email_id',email_id,'product_id',product_id,'product_name',product_name,'product_image_url',product_image_url, "
+            " 'product_desc',product_desc,'veg_nonveg',veg_nonveg,'subproduct_id',subproduct_id,'subproduct_name',subproduct_name,'price',price, "
+            " 'category_id',category_id,'category_name',category_name,'category_desc',category_desc,'category_image_url',category_image_url, "
+            " 'quantity',quantity,'line_amount',line_amount,'total_quantity',total_quantity,'total_amount',total_amount,'tax_amount',tax_amount,'tax_percent',tax_percent, "
+            " 'discount_amount',discount_amount,'discount_percent',discount_percent,'coupon_id',coupon_id,'order_status',order_status,'order_datetime',order_datetime, "
+            " 'order_complete_datetime', order_complete_datetime,'compare_date',compare_date,'createdate',createdate)),']') order_details  "
+            " from total_rder_detials where mord.order_id=order_id) order_details  "
+            " from u155614453_restro.tbl_d_order mord where mord.store_id=%s order by mord.createdate desc; ", storeid)
+        order = cursor.fetchall()
+        resp = jsonify(order)
+        resp.status_code = 200
+        resp.headers.add("Access-Control-Allow-Origin", "*")
+        return resp
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/update_order_status', methods=['POST'])
+@cross_origin()
+def update_order_status():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _order_id = _json['order_id']
+        _order_status = _json['order_status']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            data = (_order_status, _order_id)
+            cursor.execute(
+                " update u155614453_restro.tbl_d_order set order_status=%s where order_id=%s; ",
+                data)
+            conn.commit()
+            resp = jsonify('customer added successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
     except Exception as e:
         print(e)
     finally:
