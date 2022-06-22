@@ -441,6 +441,78 @@ def add_order():
         conn.close()
 
 
+@app.route('/add_order_from_store', methods=['POST'])
+@cross_origin()
+def add_order_from_store():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _order_id = _json['order_id']
+        _store_id = _json['store_id']
+        _table_num = _json['table_num']
+        _customer_id = _json['customer_id']
+        _category_id = _json['category_id']
+        _product_id = _json['product_id']
+        _subproduct_id = _json['subproduct_id']
+        _quantity = _json['quantity']
+        _total_quantity = _json['total_quantity']
+        _price = _json['price']
+        _line_amount = _json['line_amount']
+        _total_amount = _json['total_amount']
+        _tax_amount = _json['tax_amount']
+        _discount_amount = _json['discount_amount']
+        _tax_percent = _json['tax_percent']
+        _discount_percent = _json['discount_percent']
+        _coupon_id = _json['coupon_id']
+        _compare_date = _json['compare_date']
+        _order_datetime = _json['order_datetime']
+        _order_complete_datetime = _json['order_complete_datetime']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            data = (_order_id, _subproduct_id)
+            cursor.execute(
+                " select * from u155614453_restro.tbl_d_order where order_id=%s and subproduct_id=%s;",
+                data)
+            previousOrder = cursor.fetchall()
+            if len(previousOrder) > 0:
+                qnt = _quantity+previousOrder[0]["quantity"]
+                taxAmt = (qnt * _price)*(_tax_percent/100)
+                data = (qnt, _price*qnt, taxAmt, _order_id, _subproduct_id)
+                cursor.execute(
+                    " update u155614453_restro.tbl_d_order set quantity=%s, line_amount=%s, tax_amount=%s where order_id=%s and subproduct_id=%s;",
+                    data)
+                conn.commit()
+            else:
+                data = (
+                    _order_id, _store_id, _table_num, _customer_id, _category_id, _product_id, _subproduct_id,
+                    _quantity, _total_quantity,
+                    _price, _line_amount, _total_amount, _tax_amount, _discount_amount, _tax_percent, _discount_percent,
+                    _coupon_id, _compare_date, _order_datetime, _order_complete_datetime)
+                cursor.execute(
+                    " insert into u155614453_restro.tbl_d_order (order_id, store_id, table_num, customer_id, category_id, product_id, subproduct_id, quantity, total_quantity, price, line_amount, total_amount, tax_amount, "
+                    " discount_amount, tax_percent, discount_percent, coupon_id, compare_date, order_datetime, order_complete_datetime, order_status) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0); ",
+                    data)
+                conn.commit()
+            data = (_total_quantity, _total_amount, _order_id)
+            cursor.execute(
+                " update u155614453_restro.tbl_d_order set total_quantity=%s, total_amount=%s where order_id=%s;",
+                data)
+            conn.commit()
+            resp = jsonify('order updated successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route('/add_customer_details', methods=['POST'])
 @cross_origin()
 def add_customer_details():
@@ -471,27 +543,6 @@ def add_customer_details():
             return resp
         else:
             return not_found("error")
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.route('/delete_order/<string:orderid>', methods=['GET'])
-def delete_order(orderid):
-    conn = None
-    cursor = None
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-        cursor.execute(
-            "delete from u155614453_restro.tbl_d_order where order_id=%s", orderid)
-        conn.commit()
-        resp = jsonify('order deleted successfully!')
-        resp.status_code = 200
-        resp.headers.add("Access-Control-Allow-Origin", "*")
-        return resp
     except Exception as e:
         print(e)
     finally:
@@ -561,7 +612,64 @@ def update_order_status():
                 " update u155614453_restro.tbl_d_order set order_status=%s where order_id=%s; ",
                 data)
             conn.commit()
-            resp = jsonify('customer added successfully!')
+            resp = jsonify('order status updated successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/delete_order', methods=['POST'])
+@cross_origin()
+def delete_order():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _order_id = _json['order_id']
+        _subproduct_id = _json['subproduct_id']
+        _quantity = _json['quantity']
+        _type = _json['type']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            data = (_order_id, _subproduct_id)
+            cursor.execute(
+                " select * from u155614453_restro.tbl_d_order where order_id=%s and subproduct_id=%s; ",
+                data)
+            order = cursor.fetchall()
+            if _type == "true":
+                data = (order[0]["total_quantity"] - order[0]["quantity"], order[0]["total_amount"]-order[0]["line_amount"], _order_id)
+                cursor.execute(
+                    " update u155614453_restro.tbl_d_order set total_quantity=%s, total_amount=%s where order_id=%s; ",
+                    data)
+                conn.commit()
+                data = (_order_id, _subproduct_id)
+                cursor.execute(
+                    " delete from u155614453_restro.tbl_d_order where order_id=%s and subproduct_id=%s; ",
+                    data)
+                conn.commit()
+            else:
+                if _quantity > 0:
+                    totalQnty = (order[0]["total_quantity"] - order[0]["quantity"]) + _quantity
+                    totalAmnt = (order[0]["total_amount"] - order[0]["line_amount"]) + _quantity * order[0]["price"]
+                    data = (totalQnty, totalAmnt, _order_id)
+                    cursor.execute(
+                        " update u155614453_restro.tbl_d_order set total_quantity=%s, total_amount=%s where order_id=%s; ",
+                        data)
+                    conn.commit()
+                    data = (_quantity, _quantity * order[0]["price"], _order_id, _subproduct_id)
+                    cursor.execute(
+                        " update u155614453_restro.tbl_d_order set quantity=%s, line_amount=%s where order_id=%s and subproduct_id=%s; ",
+                        data)
+                    conn.commit()
+            resp = jsonify('order updated successfully!')
             resp.status_code = 200
             return resp
         else:
