@@ -21,6 +21,122 @@ app.config['MYSQL_DATABASE_DB'] = 'u155614453_restro'
 app.config['MYSQL_DATABASE_HOST'] = '217.21.95.205'
 mysql.init_app(app)
 
+
+###################### REGISTRATION ############################
+@app.route('/add_store_details', methods=['POST'])
+@cross_origin()
+def add_store_details():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _store_id = _json['store_id']
+        _store_name = _json['store_name']
+        _store_image_url = _json['store_image_url']
+        _store_mobile_number = _json['store_mobile_number']
+        _store_email_id = _json['store_email_id']
+        _gst_cert_image_url = _json['gst_cert_image_url']
+        _store_pan_number = _json['store_pan_number']
+        _address = _json['address']
+        _city = _json['city']
+        _zip_code = _json['zip_code']
+        _state = _json['state']
+        _profile_verify_status = _json['profile_verify_status']
+        _compare_date = _json['compare_date']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            data = (_store_id, _store_name, _store_image_url, _store_mobile_number, _store_email_id, _gst_cert_image_url, _store_pan_number, _address, _city, _zip_code, _state, _profile_verify_status, _compare_date)
+            cursor.execute(" insert into u155614453_restro.tbl_d_store(store_id, store_name, store_image_url, store_mobile_number, store_email_id, "
+                           " gst_cert_image_url, store_pan_number, address, city, zip_code, state, profile_verify_status, compare_date) "
+                           " VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
+            conn.commit()
+            resp = jsonify('Store details added successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/add_owner_details', methods=['POST'])
+@cross_origin()
+def add_owner_details():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _owner_id = _json['owner_id']
+        _store_id = _json['store_id']
+        _owner_name = _json['owner_name']
+        _email_id = _json['email_id']
+        _mobile_number = _json['mobile_number']
+        _aadhar_number = _json['aadhar_number']
+        _pan_number = _json['pan_number']
+        _zip_code = _json['zip_code']
+        _owner_image_url = _json['owner_image_url']
+        _aadhar_image_url = _json['aadhar_image_url']
+        _pan_image_url = _json['pan_image_url']
+        _compare_date = _json['compare_date']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            data = (_owner_id, _store_id, _owner_name, _email_id, _mobile_number, _aadhar_number, _pan_number, _zip_code, _owner_image_url, _aadhar_image_url, _pan_image_url, _compare_date)
+            cursor.execute(" insert into u155614453_restro.tbl_d_owner(owner_id, store_id, owner_name, email_id, mobile_number, aadhar_number, pan_number, "
+                           " zip_code, owner_image_url, aadhar_image_url, pan_image_url, compare_date) "
+                           " VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
+            conn.commit()
+            resp = jsonify('Store owner details added successfully!')
+            resp.status_code = 200
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/store_verified', methods=['POST'])
+@cross_origin()
+def store_verified():
+    conn = None
+    cursor = None
+    try:
+        _json = request.json
+        _store_id = _json['store_id']
+        # validate the received values
+        if  request.method == 'POST':
+            conn = mysql.connect()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(" select * from u155614453_restro.tbl_d_store where store_id=%s; ", _store_id)
+            row = cursor.fetchall()
+            value = "false"
+            if len(row) >0 :
+                if row[0]["profile_verify_status"]=="PENDING":
+                    value="false"
+                else:
+                    value="true"
+            else:
+                value = "no_entry"
+            resp = value
+            return resp
+        else:
+            return not_found("error")
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
 ###################### CATEGORY ############################
 @app.route('/create_category', methods=['POST'])
 @cross_origin()
@@ -150,15 +266,16 @@ def create_product():
         _discount_percent = _json['discount_percent']
         _avg_rating = _json['avg_rating']
         _veg_nonveg = _json['veg_nonveg']
+        _tax_percent = _json['tax_percent']
         _subproduct_list = _json['subproduct_list']
         _compare_date = _json['compare_date']
         # validate the received values
         if  request.method == 'POST':
             conn = mysql.connect()
             cursor = conn.cursor()
-            data = (_store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating, _veg_nonveg, _compare_date)
+            data = (_store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating, _veg_nonveg, _tax_percent, _compare_date)
             cursor.execute("insert into u155614453_restro.tbl_d_product(store_id, product_id, product_name, product_image_url, product_desc, discount_percent, " 
-              "avg_rating, veg_nonveg, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
+              "avg_rating, veg_nonveg, tax_percent, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
             conn.commit()
             for i in range(len(_subproduct_list)):
                 subproduct_id = "sub"+_product_id+str(i)
@@ -218,6 +335,7 @@ def update_product():
         _discount_percent = _json['discount_percent']
         _avg_rating = _json['avg_rating']
         _veg_nonveg = _json['veg_nonveg']
+        _tax_percent = _json['tax_percent']
         _subproduct_list = _json['subproduct_list']
         _compare_date = _json['compare_date']
         # validate the received values
@@ -232,11 +350,11 @@ def update_product():
                 _product_id)
             conn.commit()
             data = (
-            _store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating,
+            _store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating, _tax_percent,
             _veg_nonveg, _compare_date)
             cursor.execute(
                 "insert into u155614453_restro.tbl_d_product(store_id, product_id, product_name, product_image_url, product_desc, discount_percent, "
-                "avg_rating, veg_nonveg, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
+                "avg_rating, tax_percent, veg_nonveg, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
             conn.commit()
             for i in range(len(_subproduct_list)):
                 subproduct_id = "sub" + _product_id + str(i)
@@ -332,7 +450,7 @@ def get_menucard(id):
             cursor.execute(
                 " select menu.store_id store_id, menu.category_id category_id, menu.product_id product_id, pro.product_name product_name, "
                 " pro.product_desc product_desc, pro.product_image_url product_image_url, pro.veg_nonveg veg_nonveg, pro.avg_rating avg_rating,  "
-                " pro.compare_date compare_date, pro.discount_percent discount_percent, 0 as overall_qnty   "
+                " pro.compare_date compare_date, pro.discount_percent discount_percent, pro.tax_percent tax_percent, 0 as overall_qnty   "
                 " from u155614453_restro.tbl_d_menucard menu left join u155614453_restro.tbl_d_product pro "
                 " on pro.product_id=menu.product_id where menu.store_id=%s and category_id=%s; ", data)
             category[j]["menu_card"] = cursor.fetchall()
@@ -639,12 +757,12 @@ def delete_order():
         if  request.method == 'POST':
             conn = mysql.connect()
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            data = (_order_id, _subproduct_id)
-            cursor.execute(
-                " select * from u155614453_restro.tbl_d_order where order_id=%s and subproduct_id=%s; ",
-                data)
-            order = cursor.fetchall()
             if _type == "true":
+                data = (_order_id, _subproduct_id)
+                cursor.execute(
+                    " select * from u155614453_restro.tbl_d_order where order_id=%s and subproduct_id=%s; ",
+                    data)
+                order = cursor.fetchall()
                 data = (order[0]["total_quantity"] - order[0]["quantity"], order[0]["total_amount"]-order[0]["line_amount"], _order_id)
                 cursor.execute(
                     " update u155614453_restro.tbl_d_order set total_quantity=%s, total_amount=%s where order_id=%s; ",
@@ -657,8 +775,17 @@ def delete_order():
                 conn.commit()
             else:
                 if _quantity > 0:
+                    data = (_order_id, _subproduct_id)
+                    cursor.execute(
+                        " select * from u155614453_restro.tbl_d_order where order_id=%s and subproduct_id=%s; ",
+                        data)
+                    order = cursor.fetchall()
+                    print(order[0]["total_quantity"])
+                    print(order[0]["quantity"])
                     totalQnty = (order[0]["total_quantity"] - order[0]["quantity"]) + _quantity
                     totalAmnt = (order[0]["total_amount"] - order[0]["line_amount"]) + _quantity * order[0]["price"]
+                    print(_quantity)
+                    print(totalQnty)
                     data = (totalQnty, totalAmnt, _order_id)
                     cursor.execute(
                         " update u155614453_restro.tbl_d_order set total_quantity=%s, total_amount=%s where order_id=%s; ",
