@@ -240,7 +240,7 @@ def get_all_categories(id):
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         data = ("ACTIVE", id)
         cursor.execute(
-            "select * from u155614453_restro.tbl_d_category where status=%s and store_id=%s;", id)
+            "select * from u155614453_restro.tbl_d_category where status=%s and store_id=%s;", data)
         row = cursor.fetchall()
         resp = jsonify(row)
         resp.status_code = 200
