@@ -156,9 +156,9 @@ def create_category():
         if  request.method == 'POST':
             conn = mysql.connect()
             cursor = conn.cursor()
-            data = (_store_id, _category_id, _category_name, _category_image_url, _category_desc,_veg_nonveg,_compare_date)
-            cursor.execute("insert into u155614453_restro.tbl_d_category(store_id, category_id, category_name, category_image_url, category_desc, veg_nonveg, compare_date) "
-                  " VALUES(%s,%s,%s,%s,%s,%s,%s); ", data)
+            data = (_store_id, _category_id, _category_name, _category_image_url, _category_desc,_veg_nonveg,_compare_date,"ACTIVE")
+            cursor.execute("insert into u155614453_restro.tbl_d_category(store_id, category_id, category_name, category_image_url, category_desc, veg_nonveg, compare_date, status) "
+                  " VALUES(%s,%s,%s,%s,%s,%s,%s,%s); ", data)
             conn.commit()
             resp = jsonify('Category created successfully!')
             resp.status_code = 200
@@ -193,9 +193,9 @@ def update_category():
             cursor.execute(
                 "delete from u155614453_restro.tbl_d_category where category_id=%s;", _category_id)
             conn.commit()
-            data = (_store_id, _category_id, _category_name, _category_image_url, _category_desc,_veg_nonveg,_compare_date)
-            cursor.execute("insert into u155614453_restro.tbl_d_category(store_id, category_id, category_name, category_image_url, category_desc, veg_nonveg, compare_date) "
-                  " VALUES(%s,%s,%s,%s,%s,%s,%s); ", data)
+            data = (_store_id, _category_id, _category_name, _category_image_url, _category_desc,_veg_nonveg,_compare_date, "ACTIVE")
+            cursor.execute("insert into u155614453_restro.tbl_d_category(store_id, category_id, category_name, category_image_url, category_desc, veg_nonveg, compare_date, status) "
+                  " VALUES(%s,%s,%s,%s,%s,%s,%s,%s); ", data)
             conn.commit()
             resp = jsonify('Category updated successfully!')
             resp.status_code = 200
@@ -216,8 +216,9 @@ def delete_category(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        data = ("INACTIVE", id)
         cursor.execute(
-            "delete from u155614453_restro.tbl_d_category where category_id=%s;", id)
+            "update u155614453_restro.tbl_d_category set status=%s where category_id=%s;", data)
         conn.commit()
         resp = jsonify(['Category deleted successfully'])
         resp.status_code = 200
@@ -237,8 +238,9 @@ def get_all_categories(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        data = ("ACTIVE", id)
         cursor.execute(
-            "select * from u155614453_restro.tbl_d_category where store_id=%s;", id)
+            "select * from u155614453_restro.tbl_d_category where status=%s and store_id=%s;", id)
         row = cursor.fetchall()
         resp = jsonify(row)
         resp.status_code = 200
@@ -273,15 +275,15 @@ def create_product():
         if  request.method == 'POST':
             conn = mysql.connect()
             cursor = conn.cursor()
-            data = (_store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating, _veg_nonveg, _tax_percent, _compare_date)
+            data = (_store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating, _veg_nonveg, _tax_percent, _compare_date, "ACTIVE")
             cursor.execute("insert into u155614453_restro.tbl_d_product(store_id, product_id, product_name, product_image_url, product_desc, discount_percent, " 
-              "avg_rating, veg_nonveg, tax_percent, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
+              "avg_rating, veg_nonveg, tax_percent, compare_date, status) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
             conn.commit()
             for i in range(len(_subproduct_list)):
                 subproduct_id = "sub"+_product_id+str(i)
-                data = (subproduct_id, _product_id, _subproduct_list[i][0], _subproduct_list[i][1])
+                data = (subproduct_id, _product_id, _subproduct_list[i][0], _subproduct_list[i][1], "ACTIVE")
                 cursor.execute(
-                    "insert into u155614453_restro.tbl_d_subproduct(subproduct_id, product_id, subproduct_name, price) values(%s, %s, %s, %s);", data)
+                    "insert into u155614453_restro.tbl_d_subproduct(subproduct_id, product_id, subproduct_name, price, status) values(%s, %s, %s, %s, %s);", data)
                 conn.commit()
             resp = jsonify('Product created successfully!')
             resp.status_code = 200
@@ -302,12 +304,14 @@ def get_all_products(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        data = ("ACTIVE", id)
         cursor.execute(
-            "select * from u155614453_restro.tbl_d_product where store_id=%s;", id)
+            "select * from u155614453_restro.tbl_d_product where status=%s and store_id=%s;", data)
         row = cursor.fetchall()
         for i in range(len(row)):
+            data = ("ACTIVE", row[i]["product_id"])
             cursor.execute(
-                "select * from u155614453_restro.tbl_d_subproduct where product_id=%s;", row[i]["product_id"])
+                "select * from u155614453_restro.tbl_d_subproduct where status=%s and product_id=%s;", data)
             row[i]["subproduct_list"] = cursor.fetchall()
         resp = jsonify(row)
         resp.status_code = 200
@@ -351,16 +355,16 @@ def update_product():
             conn.commit()
             data = (
             _store_id, _product_id, _product_name, _product_image_url, _product_desc, _discount_percent, _avg_rating, _tax_percent,
-            _veg_nonveg, _compare_date)
+            _veg_nonveg, _compare_date, "ACTIVE")
             cursor.execute(
                 "insert into u155614453_restro.tbl_d_product(store_id, product_id, product_name, product_image_url, product_desc, discount_percent, "
-                "avg_rating, tax_percent, veg_nonveg, compare_date) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
+                "avg_rating, tax_percent, veg_nonveg, compare_date, status) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); ", data)
             conn.commit()
             for i in range(len(_subproduct_list)):
                 subproduct_id = "sub" + _product_id + str(i)
-                data = (subproduct_id, _product_id, _subproduct_list[i][0], _subproduct_list[i][1])
+                data = (subproduct_id, _product_id, _subproduct_list[i][0], _subproduct_list[i][1], "ACTIVE")
                 cursor.execute(
-                    "insert into u155614453_restro.tbl_d_subproduct(subproduct_id, product_id, subproduct_name, price) values(%s, %s, %s, %s);",
+                    "insert into u155614453_restro.tbl_d_subproduct(subproduct_id, product_id, subproduct_name, price, status) values(%s, %s, %s, %s, %s);",
                     data)
                 conn.commit()
             resp = jsonify('Product updated successfully!')
@@ -382,8 +386,9 @@ def delete_product(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        data = ("INACTIVE", id)
         cursor.execute(
-            "delete from u155614453_restro.tbl_d_product where product_id=%s;", id)
+            "update u155614453_restro.tbl_d_product set status=%s where product_id=%s;", data)
         conn.commit()
         resp = jsonify(['Product deleted successfully'])
         resp.status_code = 200
@@ -434,16 +439,18 @@ def get_menucard(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        data = ("ACTIVE", id)
         cursor.execute(
-            "select * from u155614453_restro.tbl_d_product where store_id=%s;", id)
+            "select * from u155614453_restro.tbl_d_product where status=%s and store_id=%s;", data)
         product = cursor.fetchall()
         for i in range(len(product)):
+            data = ("ACTIVE", product[i]["product_id"])
             cursor.execute(
-                "select * from u155614453_restro.tbl_d_subproduct where product_id=%s;", product[i]["product_id"])
+                "select * from u155614453_restro.tbl_d_subproduct where status=%s and product_id=%s;", data)
             product[i]["subproduct_list"] = cursor.fetchall()
-
+            data = ("ACTIVE", id)
         cursor.execute(
-            "select * from u155614453_restro.tbl_d_category where store_id=%s;", id)
+            "select * from u155614453_restro.tbl_d_category where status=%s and store_id=%s;", data)
         category = cursor.fetchall()
         for j in range(len(category)):
             data = (id, category[j]["category_id"])
@@ -455,8 +462,9 @@ def get_menucard(id):
                 " on pro.product_id=menu.product_id where menu.store_id=%s and category_id=%s; ", data)
             category[j]["menu_card"] = cursor.fetchall()
             for i in range(len(category[j]["menu_card"])):
+                data = ("ACTIVE", category[j]["menu_card"][i]["product_id"])
                 cursor.execute(
-                    "select * from u155614453_restro.tbl_d_subproduct where product_id=%s;", category[j]["menu_card"][i]["product_id"])
+                    "select * from u155614453_restro.tbl_d_subproduct where status=%s and product_id=%s;", data)
                 category[j]["menu_card"][i]["subproduct_list"] = cursor.fetchall()
         resp = jsonify([{"menuCategories":category, "products": product}])
         resp.status_code = 200
